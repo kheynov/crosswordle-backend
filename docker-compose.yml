@@ -1,0 +1,17 @@
+version: "3"
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PORT: ${PORT}
+    ports:
+      - "127.0.0.1:${PORT}:${PORT}"
+    volumes:
+      - ./files:/files
+    environment:
+      - PORT=$PORT
+      - SEED=$SEED
+      - SHUFFLE_TIMES=$SHUFFLE_TIMES
+    restart: always
