@@ -10,6 +10,7 @@ data class Word(
     var isVertical: Boolean,
 )
 
+
 class CrosswordGeneratorUtils {
     companion object {
         const val EMPTY_CELL: Char = '_'

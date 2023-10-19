@@ -14,6 +14,7 @@ fun Application.configureHTTP() {
         allowHeader(HttpHeaders.Authorization)
         allowHost("crosswordle.kheynov.ru")
         allowHost("crosswordle.talkiiing.ru")
+        anyHost()
     }
     install(DefaultHeaders) {
         header("X-Engine", "Ktor") // will send this header with each response

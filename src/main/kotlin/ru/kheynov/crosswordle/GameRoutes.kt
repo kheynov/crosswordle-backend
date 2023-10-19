@@ -5,40 +5,34 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
-import ru.kheynov.crosswordle.generator.CrosswordGeneratorUtils
+import ru.kheynov.crosswordle.generator.CrosswordGeneratorUtils.Companion.EMPTY_CELL
 import ru.kheynov.crosswordle.generator.generateCrossword
 import ru.kheynov.crosswordle.generator.shuffleWords
 import java.time.LocalDateTime
 
+typealias Cell = List<Char>
+
 @Serializable
 data class JsonCrossword(
     val day: Int,
-    val crossword: List<Cell>,
-)
-
-@Serializable
-data class Cell(
-    val x: Int,
-    val y: Int,
-    val origin: Char,
-    val current: Char,
+    val crossword: List<Map<Int, Cell>>,
 )
 
 private fun generateCrossword(seed: Int, wordsStore: WordsStore): JsonCrossword {
     val crossword = generateCrossword(wordsStore.words, seed)
     val crosswordShuffled = shuffleWords(crossword, 11, seed)
-    val cellsState: List<Cell> = run {
-        val res = mutableListOf<Cell>()
-        for (i in 0 until CrosswordGeneratorUtils.GRID_SIZE) {
-            for (j in 0 until CrosswordGeneratorUtils.GRID_SIZE) {
-                res.add(Cell(i, j, crossword[i][j], crosswordShuffled[i][j]))
+    val cellsState: List<Map<Int, Cell>> = run {
+        val res = mutableListOf<MutableMap<Int, Cell>>()
+        for (i in crossword.indices) {
+            if (crossword[i].count { it == EMPTY_CELL } == 7) continue
+            res.add(mutableMapOf())
+            for (j in crossword[i].indices) {
+                if (crossword[i][j] == EMPTY_CELL) continue
+                res[i][j] = listOf(crossword[i][j], crosswordShuffled[i][j])
             }
         }
         res
     }
-    println("seed: $seed")
-    println("crossword: ${crossword.joinToString("")}")
-    println("crosswordShuffled: ${crosswordShuffled.joinToString("")}")
     return JsonCrossword(
         day = LocalDateTime.now().run { dayOfYear },
         crossword = cellsState,
