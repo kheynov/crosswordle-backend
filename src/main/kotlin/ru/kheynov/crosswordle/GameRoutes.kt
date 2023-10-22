@@ -35,9 +35,11 @@ private fun generateCrossword(seed: Int, wordsStore: WordsStore): JsonCrossword 
         }
         res
     }
+    val shuffles = System.getenv("SHUFFLE_TIMES").toInt() + Random(seed).nextInt(5, 9)
+    println("shuffles: $shuffles")
     return JsonCrossword(
         day = LocalDateTime.now().run { dayOfYear },
-        shuffles = System.getenv("SHUFFLE_TIMES").toInt() + Random(seed).nextInt(5, 9),
+        shuffles = shuffles,
         crossword = cellsState,
     )
 }
