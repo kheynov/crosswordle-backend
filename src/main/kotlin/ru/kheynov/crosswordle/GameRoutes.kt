@@ -9,12 +9,14 @@ import ru.kheynov.crosswordle.generator.CrosswordGeneratorUtils.Companion.EMPTY_
 import ru.kheynov.crosswordle.generator.generateCrossword
 import ru.kheynov.crosswordle.generator.shuffleWords
 import java.time.LocalDateTime
+import kotlin.random.Random
 
 typealias Cell = List<Char>
 
 @Serializable
 data class JsonCrossword(
     val day: Int,
+    val shuffles: Int,
     val crossword: List<Map<Int, Cell>>,
 )
 
@@ -35,6 +37,7 @@ private fun generateCrossword(seed: Int, wordsStore: WordsStore): JsonCrossword 
     }
     return JsonCrossword(
         day = LocalDateTime.now().run { dayOfYear },
+        shuffles = System.getenv("SHUFFLE_TIMES").toInt() + Random(seed).nextInt(5, 9),
         crossword = cellsState,
     )
 }
