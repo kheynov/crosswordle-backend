@@ -8,9 +8,10 @@ import ru.kheynov.crosswordle.gameRoutes
 import java.io.File
 
 fun Application.configureRouting() {
-    val wordsStore = WordsStore(File("files/words.txt"))
+    val wordsRuStore = WordsStore(File("files/words.txt"))
+    val wordsEnStore = WordsStore(File("files/words_en.txt"))
     routing {
-        gameRoutes(wordsStore)
+        gameRoutes(wordsRuStore, wordsEnStore)
         get("/") {
             call.respondText("Crosswordle API")
         }

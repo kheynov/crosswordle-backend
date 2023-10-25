@@ -22,7 +22,11 @@ data class JsonCrossword(
 
 private fun generateCrossword(seed: Int, wordsStore: WordsStore): JsonCrossword {
     val crossword = generateCrossword(wordsStore.words, seed)
-    val crosswordShuffled = shuffleWords(crossword, 11, seed)
+    val crosswordShuffled = shuffleWords(
+        input = crossword,
+        shuffleIterations = null,
+        seed = seed,
+    )
     val cellsState: List<Map<Int, Cell>> = run {
         val res = mutableListOf<MutableMap<Int, Cell>>()
         for (i in crossword.indices) {
@@ -30,36 +34,39 @@ private fun generateCrossword(seed: Int, wordsStore: WordsStore): JsonCrossword 
             res.add(mutableMapOf())
             for (j in crossword[i].indices) {
                 if (crossword[i][j] == EMPTY_CELL) continue
-                res[i][j] = listOf(crossword[i][j], crosswordShuffled[i][j])
+                res[i][j] = listOf(crossword[i][j], crosswordShuffled.crossword[i][j])
             }
         }
         res
     }
-    val shuffles = System.getenv("SHUFFLE_TIMES").toInt() + Random(seed).nextInt(5, 9)
-    println("shuffles: $shuffles")
     return JsonCrossword(
         day = LocalDateTime.now().run { dayOfYear },
-        shuffles = shuffles,
+        shuffles = crosswordShuffled.shuffles + Random(seed).nextInt(5, 9),
         crossword = cellsState,
     )
 }
 
-fun Route.gameRoutes(wordsStore: WordsStore) {
+fun Route.gameRoutes(
+    ruWordsStore: WordsStore,
+    enWordsStore: WordsStore,
+) {
     get("/daily") {
         val seed = System.getenv("SEED").toLong() + LocalDateTime.now().run { dayOfYear + year }.toLong()
+        val lang = call.request.queryParameters["lang"] ?: "ru"
         call.respond(
             HttpStatusCode.OK, generateCrossword(
                 seed = seed.toInt(),
-                wordsStore = wordsStore,
+                wordsStore = if (lang == "ru") ruWordsStore else enWordsStore,
             )
         )
     }
     get("/practice") {
         val seed = System.getenv("SEED").toLong() + System.currentTimeMillis()
+        val lang = call.request.queryParameters["lang"] ?: "ru"
         call.respond(
             HttpStatusCode.OK, generateCrossword(
                 seed = seed.toInt(),
-                wordsStore = wordsStore,
+                wordsStore = if (lang == "ru") ruWordsStore else enWordsStore,
             )
         )
     }

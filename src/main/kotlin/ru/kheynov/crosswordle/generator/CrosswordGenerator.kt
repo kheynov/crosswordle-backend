@@ -254,7 +254,16 @@ fun generateCrossword(words: List<String>, seed: Int): Array<CharArray> {
     return getBestGrid(generatedGrids).getGrid()
 }
 
-fun shuffleWords(input: Array<CharArray>, shuffleIterations: Int, seed: Int): List<List<Char>> {
+data class ShuffledCrossword(
+    val crossword: List<List<Char>>,
+    val shuffles: Int,
+)
+
+fun shuffleWords(input: Array<CharArray>, shuffleIterations: Int? = null, seed: Int): ShuffledCrossword {
+    val shuffles = shuffleIterations
+        ?: (input.fold(0) { acc: Int, chars: CharArray ->
+            acc + chars.count { it != CrosswordGeneratorUtils.EMPTY_CELL }
+        } / 2)
     val output = input.toList().map { it.toMutableList() }
     val random = Random(seed)
     val lettersInWordsCoords = output.fold(mutableListOf<Pair<Int, Int>>()) { acc, row ->
@@ -266,22 +275,22 @@ fun shuffleWords(input: Array<CharArray>, shuffleIterations: Int, seed: Int): Li
         acc
     }
     lettersInWordsCoords.shuffle(random)
-    lettersInWordsCoords.take(shuffleIterations).forEach {
+    lettersInWordsCoords.take(shuffles).forEach {
         val (row, column) = it
         val (newRow, newColumn) = lettersInWordsCoords.random(random)
         val temp = output[row][column]
         output[row][column] = output[newRow][newColumn]
         output[newRow][newColumn] = temp
     }
-    return output
+    return ShuffledCrossword(output, shuffles)
 }
 
 fun main() {
     val words =
-        File("/Users/kheynov/Downloads/words.txt").readLines()
-//    File("/Users/kheynov/Downloads/words.txt").writeText(words.joinToString("\n"))
+        File("files/words_en.txt").readLines()
+//    File("files/words_en.txt").writeText(words.joinToString("\n"))
     val seed = 15
-    var grid = generateCrossword(words, seed)
+    val grid = generateCrossword(words, seed)
     for (row in grid) {
         for (cell in row) {
             print("$cell ")
@@ -289,8 +298,8 @@ fun main() {
         println()
     }
     println()
-    val gridRes = shuffleWords(grid, 10, seed)
-    for (row in gridRes) {
+    val gridRes = shuffleWords(grid, null, seed)
+    for (row in gridRes.crossword) {
         for (cell in row) {
             print("$cell ")
         }
