@@ -40,7 +40,7 @@ private fun generateCrossword(seed: Int, wordsStore: WordsStore): JsonCrossword 
         res
     }
     return JsonCrossword(
-        day = LocalDateTime.now().run { dayOfYear },
+        day = LocalDateTime.now().dayOfYear,
         shuffles = crosswordShuffled.shuffles + Random(seed).nextInt(5, 9),
         crossword = cellsState,
     )
@@ -63,9 +63,18 @@ fun Route.gameRoutes(
     get("/practice") {
         val seed = System.getenv("SEED").toLong() + System.currentTimeMillis()
         val lang = call.request.queryParameters["lang"] ?: "ru"
+        val seedExt: Int? = call.request.queryParameters["seed"].run {
+            try {
+                this?.toInt()
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid seed")
+                return@get
+            }
+        }
+
         call.respond(
             HttpStatusCode.OK, generateCrossword(
-                seed = seed.toInt(),
+                seed = seedExt ?: seed.toInt(),
                 wordsStore = if (lang == "ru") ruWordsStore else enWordsStore,
             )
         )
